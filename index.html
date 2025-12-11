@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Shop - Place Your Order</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #fcb69f;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #c33a3a;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .loading-catalog {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #c33a3a;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .section-title {
+            color: #c33a3a;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #fcb69f;
+            box-shadow: 0 0 0 3px rgba(252, 182, 159, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .product-selection {
+            background: #fff5f0;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #fcb69f;
+            margin-bottom: 20px;
+        }
+        
+        .category-group {
+            margin-bottom: 20px;
+        }
+        
+        .category-label {
+            color: #c33a3a;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .product-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .product-select {
+            background: white;
+        }
+        
+        .qty-input {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .cart-summary {
+            background: #fff5f0;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #fcb69f;
+            margin: 20px 0;
+        }
+        
+        .cart-items {
+            margin-bottom: 15px;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: 700;
+            color: #c33a3a;
+            padding-top: 15px;
+            border-top: 3px solid #fcb69f;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            color: #718096;
+            padding: 20px;
+        }
+        
+        .signature-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+        
+        .signature-section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        #signature-pad {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: white;
+            display: block;
+            width: 100%;
+            height: 250px;
+            touch-action: none;
+        }
+        
+        .signature-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-clear {
+            padding: 8px 16px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn-clear:hover {
+            background: #c53030;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #c33a3a 0%, #fcb69f 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 20px;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(195, 58, 58, 0.4);
+        }
+        
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-message {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+        
+        .status-message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .required {
+            color: #e53e3e;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💄 Beauty Shop</h1>
+            <p>Select your products and place your order</p>
+        </div>
+        
+        <div id="loading-catalog" class="loading-catalog">
+            <div class="spinner"></div>
+            <p>Loading product catalog...</p>
+        </div>
+        
+        <form id="order-form" style="display: none;">
+            <!-- Customer Details -->
+            <div class="section-title">👤 Customer Details</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required placeholder="Jane Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+27 XX XXX XXXX">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required placeholder="jane@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Delivery Address <span class="required">*</span></label>
+                <textarea id="address" name="address" required placeholder="123 Main Street, Suburb, City, Postal Code"></textarea>
+            </div>
+            
+            <!-- Product Selection -->
+            <div class="section-title">🛍️ Select Products</div>
+            
+            <div id="product-selection" class="product-selection">
+                <!-- Product dropdowns will be generated here -->
+            </div>
+            
+            <!-- Cart Summary -->
+            <div class="section-title">🛒 Your Order</div>
+            
+            <div class="cart-summary">
+                <div id="cart-items" class="cart-items">
+                    <div class="empty-cart">Select products above to see your order</div>
+                </div>
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cart-total">R0.00</span>
+                </div>
+            </div>
+            
+            <!-- Signature -->
+            <div class="signature-section">
+                <h3>✍️ Your Signature</h3>
+                <p style="color: #718096; font-size: 14px; margin-bottom: 10px;">By signing below, you confirm this order and agree to our terms.</p>
+                <canvas id="signature-pad" width="800" height="250"></canvas>
+                <div class="signature-buttons">
+                    <button type="button" class="btn-clear" onclick="clearSignature()">Clear Signature</button>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-submit" id="submit-btn">🛍️ Place Order & Pay</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #4a5568;">Processing your order...</p>
+            </div>
+            
+            <div class="status-message" id="status-message"></div>
+        </form>
+    </div>
+
+    <script>
+        // ⚠️ REPLACE THIS URL WITH YOUR APPS SCRIPT WEB APP URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuCZQ-a4UDWoXcBFc2X_23ucpMdAEPzDvO4lUbYclrcIQmePYAMvTQ3_XJrGJC3HSh/exec';
+        
+        let CATALOG = {};
+        let selectedProducts = {};
+        
+        // Load catalog on page load
+        async function loadCatalog() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                
+                if (data.success) {
+                    CATALOG = data.catalog;
+                    generateProductSelectors();
+                    document.getElementById('loading-catalog').style.display = 'none';
+                    document.getElementById('order-form').style.display = 'block';
+                } else {
+                    showError('Failed to load product catalog. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Error loading catalog:', error);
+                showError('Failed to load product catalog. Please check your connection and refresh.');
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading-catalog').innerHTML = `
+                <p style="color: #e53e3e; font-weight: 600;">${message}</p>
+            `;
+        }
+        
+        // Generate product selection dropdowns
+        function generateProductSelectors() {
+            const container = document.getElementById('product-selection');
+            
+            for (const [category, products] of Object.entries(CATALOG)) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-group';
+                
+                const categoryLabel = document.createElement('label');
+                categoryLabel.className = 'category-label';
+                categoryLabel.textContent = category;
+                categoryDiv.appendChild(categoryLabel);
+                
+                const productRow = document.createElement('div');
+                productRow.className = 'product-row';
+                
+                // Product dropdown
+                const select = document.createElement('select');
+                select.className = 'product-select form-group';
+                select.id = `select-${category}`;
+                select.onchange = () => updateCart();
+                
+                // Add "None" option
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = 'None - R0.00';
+                select.appendChild(noneOption);
+                
+                // Add products
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(product);
+                    option.textContent = `${product.name} - R${product.price.toFixed(2)}`;
+                    if (product.stock === 0) {
+                        option.textContent += ' (Out of Stock)';
+                        option.disabled = true;
+                    }
+                    select.appendChild(option);
+                });
+                
+                // Quantity input
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'number';
+                qtyInput.className = 'qty-input';
+                qtyInput.id = `qty-${category}`;
+                qtyInput.value = 1;
+                qtyInput.min = 1;
+                qtyInput.max = 99;
+                qtyInput.onchange = () => updateCart();
+                
+                productRow.appendChild(select);
+                productRow.appendChild(qtyInput);
+                categoryDiv.appendChild(productRow);
+                container.appendChild(categoryDiv);
+            }
+        }
+        
+        // Update cart based on selections
+        function updateCart() {
+            selectedProducts = {};
+            let total = 0;
+            
+            for (const category of Object.keys(CATALOG)) {
+                const select = document.getElementById(`select-${category}`);
+                const qtyInput = document.getElementById(`qty-${category}`);
+                
+                if (select.value) {
+                    const product = JSON.parse(select.value);
+                    const quantity = parseInt(qtyInput.value) || 1;
+                    const lineTotal = product.price * quantity;
+                    
+                    selectedProducts[category] = {
+                        ...product,
+                        quantity: quantity,
+                        lineTotal: lineTotal
+                    };
+                    
+                    total += lineTotal;
+                }
+            }
+            
+            renderCart(total);
+        }
+        
+        // Render cart display
+        function renderCart(total) {
+            const cartItemsDiv = document.getElementById('cart-items');
+            const cartTotalSpan = document.getElementById('cart-total');
+            
+            if (Object.keys(selectedProducts).length === 0) {
+                cartItemsDiv.innerHTML = '<div class="empty-cart">Select products above to see your order</div>';
+                cartTotalSpan.textContent = 'R0.00';
+                return;
+            }
+            
+            let html = '';
+            
+            for (const product of Object.values(selectedProducts)) {
+                html += `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${product.name}</strong><br>
+                            <small style="color: #718096;">${product.code} × ${product.quantity}</small>
+                        </div>
+                        <div style="font-weight: 700; color: #c33a3a;">R${product.lineTotal.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+            
+            cartItemsDiv.innerHTML = html;
+            cartTotalSpan.textContent = `R${total.toFixed(2)}`;
+        }
+        
+        // Signature Pad Setup
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasSignature = false;
+        
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            hasSignature = true;
+            const pos = getPosition(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const pos = getPosition(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function getPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+        
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrawing(e);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e);
+        });
+        canvas.addEventListener('touchend', stopDrawing);
+        
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+        }
+        
+        // Form submission
+        document.getElementById('order-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (Object.keys(selectedProducts).length === 0) {
+                showMessage('Please select at least one product!', 'error');
+                return;
+            }
+            
+            if (!hasSignature) {
+                showMessage('Please provide your signature before submitting.', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            const statusMessage = document.getElementById('status-message');
+            
+            submitBtn.disabled = true;
+            loading.classList.add('active');
+            statusMessage.style.display = 'none';
+            
+            // Build order items
+            const orderItems = [];
+            let total = 0;
+            
+            for (const product of Object.values(selectedProducts)) {
+                orderItems.push({
+                    code: product.code,
+                    name: product.name,
+                    price: product.price,
+                    quantity: product.quantity,
+                    lineTotal: product.lineTotal
+                });
+                total += product.lineTotal;
+            }
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                orderItems: orderItems,
+                total: total,
+                signature: canvas.toDataURL('image/png')
+            };
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                showMessage('✅ Order placed successfully! Check your email for invoice and payment link.', 'success');
+                document.getElementById('order-form').reset();
+                selectedProducts = {};
+                renderCart(0);
+                
+                // Reset all dropdowns
+                for (const category of Object.keys(CATALOG)) {
+                    document.getElementById(`select-${category}`).value = '';
+                    document.getElementById(`qty-${category}`).value = 1;
+                }
+                
+                clearSignature();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('❌ Something went wrong. Please try again or contact us directly.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+        
+        function showMessage(message, type) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+            statusMessage.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Load catalog when page loads
+        loadCatalog();
+    </script>
+</body>
+</html>

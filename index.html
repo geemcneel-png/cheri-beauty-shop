@@ -149,9 +149,10 @@
         
         .product-row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 1fr auto;
             gap: 10px;
             margin-bottom: 10px;
+            align-items: center;
         }
         
         .product-select {
@@ -161,6 +162,44 @@
         .qty-input {
             text-align: center;
             font-weight: 600;
+        }
+        
+        .btn-remove {
+            padding: 8px 12px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        
+        .btn-remove:hover {
+            background: #c53030;
+        }
+        
+        .btn-add-more {
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: white;
+            color: #c33a3a;
+            border: 2px solid #fcb69f;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-add-more:hover {
+            background: #fcb69f;
+            color: white;
         }
         
         .cart-summary {
@@ -323,6 +362,11 @@
             
             .product-row {
                 grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .btn-remove {
+                width: 100%;
             }
         }
     </style>
@@ -412,6 +456,7 @@
         
         let CATALOG = {};
         let selectedProducts = {};
+        let productRowCounter = {}; // Track how many rows per category
         
         // Load catalog on page load
         async function loadCatalog() {
@@ -421,6 +466,10 @@
                 
                 if (data.success) {
                     CATALOG = data.catalog;
+                    // Initialize row counters
+                    for (const category of Object.keys(CATALOG)) {
+                        productRowCounter[category] = 0;
+                    }
                     generateProductSelectors();
                     document.getElementById('loading-catalog').style.display = 'none';
                     document.getElementById('order-form').style.display = 'block';
@@ -443,81 +492,158 @@
         function generateProductSelectors() {
             const container = document.getElementById('product-selection');
             
-            for (const [category, products] of Object.entries(CATALOG)) {
+            for (const category of Object.keys(CATALOG)) {
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category-group';
+                categoryDiv.id = `category-${category}`;
                 
                 const categoryLabel = document.createElement('label');
                 categoryLabel.className = 'category-label';
                 categoryLabel.textContent = category;
                 categoryDiv.appendChild(categoryLabel);
                 
-                const productRow = document.createElement('div');
-                productRow.className = 'product-row';
+                // Container for product rows
+                const rowsContainer = document.createElement('div');
+                rowsContainer.id = `rows-${category}`;
+                categoryDiv.appendChild(rowsContainer);
                 
-                // Product dropdown
-                const select = document.createElement('select');
-                select.className = 'product-select form-group';
-                select.id = `select-${category}`;
-                select.onchange = () => updateCart();
+                // Add first row
+                addProductRow(category, rowsContainer);
                 
-                // Add "None" option
-                const noneOption = document.createElement('option');
-                noneOption.value = '';
-                noneOption.textContent = 'None - R0.00';
-                select.appendChild(noneOption);
+                // Add "Add Another" button
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'btn-add-more';
+                addButton.innerHTML = '➕ Add Another ' + category + ' Item';
+                addButton.onclick = () => addProductRow(category, rowsContainer);
+                categoryDiv.appendChild(addButton);
                 
-                // Add products
-                products.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = JSON.stringify(product);
-                    option.textContent = `${product.name} - R${product.price.toFixed(2)}`;
-                    if (product.stock === 0) {
-                        option.textContent += ' (Out of Stock)';
-                        option.disabled = true;
-                    }
-                    select.appendChild(option);
-                });
-                
-                // Quantity input
-                const qtyInput = document.createElement('input');
-                qtyInput.type = 'number';
-                qtyInput.className = 'qty-input';
-                qtyInput.id = `qty-${category}`;
-                qtyInput.value = 1;
-                qtyInput.min = 1;
-                qtyInput.max = 99;
-                qtyInput.onchange = () => updateCart();
-                
-                productRow.appendChild(select);
-                productRow.appendChild(qtyInput);
-                categoryDiv.appendChild(productRow);
                 container.appendChild(categoryDiv);
             }
+        }
+        
+        // Add a product row to a category
+        function addProductRow(category, container) {
+            const rowId = `${category}-${productRowCounter[category]}`;
+            productRowCounter[category]++;
+            
+            const productRow = document.createElement('div');
+            productRow.className = 'product-row';
+            productRow.id = `row-${rowId}`;
+            
+            // Product dropdown
+            const select = document.createElement('select');
+            select.className = 'product-select form-group';
+            select.id = `select-${rowId}`;
+            select.onchange = () => updateCart();
+            
+            // Add "None" option
+            const noneOption = document.createElement('option');
+            noneOption.value = '';
+            noneOption.textContent = 'None - R0.00';
+            select.appendChild(noneOption);
+            
+            // Add products from catalog
+            const products = CATALOG[category] || [];
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(product);
+                option.textContent = `${product.name} - R${product.price.toFixed(2)}`;
+                if (product.stock === 0) {
+                    option.textContent += ' (Out of Stock)';
+                    option.disabled = true;
+                }
+                select.appendChild(option);
+            });
+            
+            // Quantity input
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'number';
+            qtyInput.className = 'qty-input';
+            qtyInput.id = `qty-${rowId}`;
+            qtyInput.value = 1;
+            qtyInput.min = 1;
+            qtyInput.max = 99;
+            qtyInput.onchange = () => updateCart();
+            
+            // Remove button (only show if more than one row exists)
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn-remove';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = () => removeProductRow(rowId, category);
+            
+            productRow.appendChild(select);
+            productRow.appendChild(qtyInput);
+            productRow.appendChild(removeBtn);
+            
+            container.appendChild(productRow);
+            
+            // Update remove button visibility
+            updateRemoveButtons(category);
+        }
+        
+        // Remove a product row
+        function removeProductRow(rowId, category) {
+            const row = document.getElementById(`row-${rowId}`);
+            if (row) {
+                row.remove();
+                updateRemoveButtons(category);
+                updateCart();
+            }
+        }
+        
+        // Update visibility of remove buttons (hide if only one row)
+        function updateRemoveButtons(category) {
+            const container = document.getElementById(`rows-${category}`);
+            const rows = container.querySelectorAll('.product-row');
+            
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.btn-remove');
+                if (rows.length > 1) {
+                    removeBtn.style.display = 'block';
+                } else {
+                    removeBtn.style.display = 'none';
+                }
+            });
         }
         
         // Update cart based on selections
         function updateCart() {
             selectedProducts = {};
             let total = 0;
+            let itemCounter = 0;
             
+            // Loop through all categories
             for (const category of Object.keys(CATALOG)) {
-                const select = document.getElementById(`select-${category}`);
-                const qtyInput = document.getElementById(`qty-${category}`);
+                const container = document.getElementById(`rows-${category}`);
+                if (!container) continue;
                 
-                if (select.value) {
-                    const product = JSON.parse(select.value);
-                    const quantity = parseInt(qtyInput.value) || 1;
-                    const lineTotal = product.price * quantity;
+                const rows = container.querySelectorAll('.product-row');
+                
+                // Loop through each row in this category
+                rows.forEach(row => {
+                    const select = row.querySelector('select');
+                    const qtyInput = row.querySelector('input[type="number"]');
                     
-                    selectedProducts[category] = {
-                        ...product,
-                        quantity: quantity,
-                        lineTotal: lineTotal
-                    };
-                    
-                    total += lineTotal;
-                }
+                    if (select && select.value) {
+                        const product = JSON.parse(select.value);
+                        const quantity = parseInt(qtyInput.value) || 1;
+                        const lineTotal = product.price * quantity;
+                        
+                        // Use unique key for each product selection
+                        const uniqueKey = `item-${itemCounter}`;
+                        itemCounter++;
+                        
+                        selectedProducts[uniqueKey] = {
+                            ...product,
+                            quantity: quantity,
+                            lineTotal: lineTotal
+                        };
+                        
+                        total += lineTotal;
+                    }
+                });
             }
             
             renderCart(total);
@@ -681,10 +807,17 @@
                 selectedProducts = {};
                 renderCart(0);
                 
-                // Reset all dropdowns
+                // Reset all product selections - remove extra rows and reset first row
                 for (const category of Object.keys(CATALOG)) {
-                    document.getElementById(`select-${category}`).value = '';
-                    document.getElementById(`qty-${category}`).value = 1;
+                    const container = document.getElementById(`rows-${category}`);
+                    if (container) {
+                        // Remove all rows
+                        container.innerHTML = '';
+                        // Reset counter
+                        productRowCounter[category] = 0;
+                        // Add one fresh row
+                        addProductRow(category, container);
+                    }
                 }
                 
                 clearSignature();
